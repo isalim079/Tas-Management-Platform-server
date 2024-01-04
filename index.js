@@ -23,9 +23,21 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         const benefits = client.db("taskManagementDB").collection("benefitsDB");
-        const taskerUsers = client.db("taskManagementDB").collection("taskerUser");
+        const taskerUsers = client
+            .db("taskManagementDB")
+            .collection("taskerUser");
         const taskData = client.db("taskManagementDB").collection("taskDataDB");
-        const taskCompletedData = client.db("taskManagementDB").collection("taskCompletedDataDB");
+        const taskCompletedData = client
+            .db("taskManagementDB")
+            .collection("taskCompletedDataDB");
+        const taskListDB = client.db("taskManagementDB").collection("taskList");
+
+        // getting all taskList
+        app.get("/taskList", async (req, res) => {
+            const cursor = taskListDB.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        });
 
         app.get("/benefits", async (req, res) => {
             const cursor = benefits.find();
@@ -69,10 +81,18 @@ async function run() {
             res.send(result);
         });
 
-        app.delete("/taskData/:id", async(req, res) => {
-            const id = req.params.id
+        app.delete("/taskData/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await taskData.deleteOne(query);
+            res.send(result);
+        });
+
+        // delete completed task
+        app.delete('/completedTaskData/:id', async (req, res) => {
+            const id = req.params.id;
             const query = {_id: new ObjectId(id)}
-            const result = await taskData.deleteOne(query)
+            const result = await taskCompletedData.deleteOne(query)
             res.send(result)
         })
 
